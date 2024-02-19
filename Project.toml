@@ -1,0 +1,13 @@
+name = "SDI"
+uuid = "cc98a4f9-e790-4d84-b30a-28956526f7bc"
+authors = ["Andre Kalouguine <andre.kalouguine@ensta-paris.fr>"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
