@@ -111,9 +111,17 @@ function load_data(data_prefix, data_range, param; n_cutoff = 10)
         B_auto,D_auto = auto_bright_dark(img[:,:,1])
         if isnothing(Bright)
             Bright = B_auto
+        else
+            B = zeros(Bool,size(img)[1:2])
+            B[Bright...] .= true
+            Bright = B |> BitArray
         end
         if isnothing(Dark)
             Dark = D_auto
+        else
+            D = zeros(Bool,size(img)[1:2])
+            D[Dark...] .= true
+            Dark = D |> BitArray
         end
         raw_contrast = contrast_sequence(img,Bright,Dark) # Calculate contrast curve
         contrast = smooth(raw_contrast) # Smooth out the contrast curve
@@ -151,5 +159,6 @@ end
 
 n_c(λ::Quantity) = 1.1e21u"cm^-3"*(1u"µm"/λ)^2 |> u"cm^-3"
 n_c(λ::Number) = 1.1e21u"cm^-3"*(1000/λ)^2 # Assuming it's in nanometers
+
 
 end

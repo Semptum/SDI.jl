@@ -89,6 +89,13 @@ The parameters are the speeds at different wavelengths
 struct FreeSpeed_ConstantRatios end
 
 """
+We suppose the isothermal model. We suppose that the satellite expansion speed is proportional to the fluence but starting from a certain wavelength it becomes 0.
+
+The parameters are the speeds at different wavelengths
+"""
+struct FreeSpeed_LambdaCutoffFluenceRatios end
+
+"""
 We suppose that the satellite expansion speed is proportional to the square root of the fluence
 
 The parameters are the speeds at different wavelengths but this time with a polynomial fit. First linear terms, then 2nd degree
@@ -101,7 +108,7 @@ function fit_speed(inversions, angles, lambdas, param, ::FixedSpeed_FreeRatios; 
     #p_prepulse = param["prepulse_fit_param"]
     #fit_prepulse = param["prepulse_fit_method"]
     #Fluences = fit_prepulse.(Ref(p_prepulse),lambdas)
-    n_e_0 = 330*n_c(800)
+    n_e_0 = param["n_e_0"]*n_c(800)
     lambdas2i = lambdas_to_i(lambdas)
 
     Geom = 4*π*cos(θᵢ)./(lambdas*1u"nm")
@@ -123,7 +130,7 @@ function fit_speed(inversions, angles, lambdas, param, ::FreeSpeed_FreeRatios)
     #p_prepulse = param["prepulse_fit_param"]
     #fit_prepulse = param["prepulse_fit_method"]
     #Fluences = fit_prepulse.(Ref(p_prepulse),lambdas)
-    n_e_0 = 330*n_c(800)
+    n_e_0 = param["n_e_0"]*n_c(800)
     lambdas2i = lambdas_to_i(lambdas)
     n = maximum(lambdas2i)
 
@@ -149,7 +156,7 @@ function fit_speed(inversions, angles, lambdas, param, ::FreeSpeed_NullRatios)
     #p_prepulse = param["prepulse_fit_param"]
     #fit_prepulse = param["prepulse_fit_method"]
     #Fluences = fit_prepulse.(Ref(p_prepulse),lambdas)
-    n_e_0 = 330*n_c(800)
+    n_e_0 = param["n_e_0"]*n_c(800)
     lambdas2i = lambdas_to_i(lambdas)
     n = maximum(lambdas2i)
 
@@ -174,7 +181,7 @@ function fit_speed(inversions, angles, lambdas, param, ::FreeSpeed_ConstantRatio
     #p_prepulse = param["prepulse_fit_param"]
     #fit_prepulse = param["prepulse_fit_method"]
     #Fluences = fit_prepulse.(Ref(p_prepulse),lambdas)
-    n_e_0 = 330*n_c(800)
+    n_e_0 = param["n_e_0"]*n_c(800)
     lambdas2i = lambdas_to_i(lambdas)
     n = maximum(lambdas2i)
 
@@ -204,7 +211,7 @@ function fit_speed(inversions, angles, lambdas, param, ::FreeSpeed_OffsetFluence
     d_sat_px_per_nm = satellite_distance_factor(scaling_factor(d_sat_800))
     Fluences = fluence_function.(Ref(p_prepulse),lambdas*d_sat_px_per_nm)
 
-    n_e_0 = 330*n_c(800)
+    n_e_0 = param["n_e_0"]*n_c(800)
     lambdas2i = lambdas_to_i(lambdas)
     n = maximum(lambdas2i)
 
@@ -233,7 +240,7 @@ function fit_speed(inversions, angles, lambdas, param, ::FreeSpeed_FixedFluenceR
     d_sat_px_per_nm = satellite_distance_factor(scaling_factor(d_sat_800))
     Fluences = fluence_function.(Ref(p_prepulse),lambdas*d_sat_px_per_nm)
 
-    n_e_0 = 330*n_c(800)
+    n_e_0 = param["n_e_0"]*n_c(800)
     lambdas2i = lambdas_to_i(lambdas)
     n = maximum(lambdas2i)
 
@@ -260,7 +267,7 @@ function fit_speed(inversions, angles, lambdas, param, ::FixedSpeed_OffsetFluenc
     d_sat_px_per_nm = satellite_distance_factor(scaling_factor(d_sat_800))
     Fluences = fluence_function.(Ref(p_prepulse),lambdas*d_sat_px_per_nm)
 
-    n_e_0 = 330*n_c(800)
+    n_e_0 = param["n_e_0"]*n_c(800)
     lambdas2i = lambdas_to_i(lambdas)
     n = maximum(lambdas2i)
 
@@ -287,7 +294,7 @@ function fit_speed(inversions, angles, lambdas, param, ::FreeSpeeds_FixedFluence
     d_sat_px_per_nm = satellite_distance_factor(scaling_factor(d_sat_800))
     Fluences = fluence_function.(Ref(p_prepulse),lambdas*d_sat_px_per_nm)
 
-    n_e_0 = 330*n_c(800)
+    n_e_0 = param["n_e_0"]*n_c(800)
     lambdas2i = lambdas_to_i(lambdas)
     n = maximum(lambdas2i)
 
@@ -308,7 +315,7 @@ end
 function fit_speed(inversions, angles, lambdas, param, ::FreeSpeeds_NullFluenceRatios)
     θᵢ = param["incidence_angle"]
 
-    n_e_0 = 330*n_c(800)
+    n_e_0 = param["n_e_0"]*n_c(800)
     lambdas2i = lambdas_to_i(lambdas)
     n = maximum(lambdas2i)
 
@@ -330,7 +337,7 @@ end
 function fit_speed(inversions, angles, lambdas, param, ::FreeSpeeds_ConstantRatios)
     θᵢ = param["incidence_angle"]
 
-    n_e_0 = 330*n_c(800)
+    n_e_0 = param["n_e_0"]*n_c(800)
     lambdas2i = lambdas_to_i(lambdas)
     n = maximum(lambdas2i)
 
@@ -350,6 +357,33 @@ function fit_speed(inversions, angles, lambdas, param, ::FreeSpeeds_ConstantRati
     return fit.param, model(inversions,fit.param), model, fit
 end
 
+
+
+function fit_speed(inversions, angles, lambdas, param, ::FreeSpeed_LambdaCutoffFluenceRatios; cutoff = 740)
+    θᵢ = param["incidence_angle"]
+    p_prepulse = param["prepulse_fit_param"]
+    fluence_function = param["prepulse_fit_method"]
+    d_sat_800 = param["distance_sat"]
+    d_sat_px_per_nm = satellite_distance_factor(scaling_factor(d_sat_800))
+    Fluences = fluence_function.(Ref(p_prepulse),lambdas*d_sat_px_per_nm)
+
+    n_e_0 = param["n_e_0"]*n_c(800)
+    lambdas2i = lambdas_to_i(lambdas)
+
+    Geom = 4*π*cos(θᵢ)./(lambdas*1u"nm")
+    F_iso = log.(n_e_0 ./(exp(1)*n_c.(lambdas)*cos(θᵢ)^2))
+
+    function model(t, c_s)
+        Geom .* F_iso .* (1 .- sqrt.(Fluences).*(lambdas.<cutoff)) .*c_s *1u"nm/ps" .* t * 1u"ps"
+    end
+
+    upper = [300.0]
+    lower = [0.0]
+
+    fit = curve_fit(model, inversions, angles, rand(1), lower=lower, upper=upper)
+    
+    return fit.param, model(inversions,fit.param), model, fit
+end
 
 
 end

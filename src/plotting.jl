@@ -21,6 +21,7 @@ import ..Fits:  FixedSpeed_FreeRatios,
                 FreeSpeeds_ConstantRatios,
                 FreeSpeed_ConstantRatios,
                 FreePolynomialSpeeds_FixedFluenceRatios,
+                FreeSpeed_LambdaCutoffFluenceRatios,
                 fit_speed
 
 using Plots
@@ -33,29 +34,29 @@ function plot_prepulse_fit(image, param, figure_folder; filename = "prepulse_fit
     lambdas = param["lambdas"]
     scaling_sat_px_per_nm = satellite_distance_factor(scaling_factor(param["distance_sat"]))
     plot(20:5:1000,
-        sqrt.(
+        #sqrt.(
                 fluence_image.(
                     Ref(p_im),
                     (20:5:1000)*scaling_sat_px_per_nm
-                )
+                #)
             ),
     label = "From image")
 
     plot!(20:5:1000,
-    sqrt.(
+    #sqrt.(
             fluence_gauss.(
                 Ref(p_g),
                 (20:5:1000)*scaling_sat_px_per_nm
-            )
+            #)
         ),
     label = "Gaussian fit")
 
     plot!(20:5:1000,
-    sqrt.(
+    #sqrt.(
             fluence_airy.(
                 Ref(p_a),
                 (20:5:1000)*scaling_sat_px_per_nm
-            )
+            #)
         ),
     label = "Airy fit")
     vline!(lambdas, label = "Measurement wavelengths")
@@ -315,4 +316,25 @@ function plot_FreeSpeed_ConstantRatios(Loaded_Data, figure_folder, param; filena
     title!("Visualisation of fit, cₛ = $(round(p[1],digits = 2)) ± $(round(conf95[1]/2, sigdigits=2)) nm/ps")
     savefig(joinpath(figure_folder,"vis_fit_"*filename))
 end
+
+function plot_FreeSpeed_LambdaCutoffFluenceRatios(Loaded_Data, figure_folder, param; filename = "FreeSpeed_LambdaCutoffFluenceRatios.pdf", cutoff = 740)
+    Inv,Ang,Lam, Steps, cInv = Loaded_Data["Inv"],Loaded_Data["Ang"],Loaded_Data["Lam"], Loaded_Data["Ste"], Loaded_Data["cInv"]
+    p,A,model,fit = fit_speed(Inv, Ang, Lam, param, 
+    FreeSpeed_LambdaCutoffFluenceRatios(); cutoff = cutoff)
+    conf95 = [i[2]-i[1] for i in confidence_interval(fit, 0.05)]
+    #
+    plot(Steps.*cInv, A, label="Fit")
+    k = 1
+    for l in sort(unique(Lam))
+        rng = k:k+sum(Lam.==l)-1
+        scatter!(cInv[rng].*Steps[Lam.==l],Ang[Lam.==l], color = Int.(l), label = "$l nm")
+        k += sum(Lam.==l)
+    end
+    xlabel!("Concatenated measurements")
+    ylabel!("Angle [rad]")
+    title!("Vis. of fit, cₛ = $(round(p[1],digits = 2)) ± $(round(conf95[1]/2, sigdigits=2)) nm/ps, cutoff = $cutoff nm")
+    savefig(joinpath(figure_folder,"vis_fit_"*filename))
+    return fit
+end
+
 end
